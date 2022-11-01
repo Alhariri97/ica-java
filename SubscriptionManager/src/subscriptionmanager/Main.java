@@ -5,11 +5,18 @@
  */
 package subscriptionmanager;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -21,28 +28,30 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-//        newSubscription();
+        displaySummary();
 
-        int selected = menu();
-        switch (selected) {
-            case 0:
-                System.out.println("selected is 0 ");
-                break;
-            case 1:
-                System.out.println("selected is 1 ");
-                newSubscription();
-                break;
-            case 2:
-                System.out.println("selected is 2 ");
-                break;
-            case 3:
-                System.out.println("selected is 3 ");
-                break;
-            case 4:
-                System.out.println("selected is 4 ");
-                break;
-
-        }
+//        int selected = menu();
+//        switch (selected) {
+//            case 0:
+//                System.out.println("selected is 0 ");
+//                System.exit(0);
+//                break;
+//            case 1:
+//                System.out.println("selected is 1 ");
+//                newSubscription();
+//                break;
+//            case 2:
+//                System.out.println("selected is 2 ");
+//                displaySummary();
+//                break;
+//            case 3:
+//                System.out.println("selected is 3 ");
+//                break;
+//            case 4:
+//                System.out.println("selected is 4 ");
+//                break;
+//
+//        }
         System.out.println("Thanks for using my System, hava a good day and see you soon :)");
     }
 
@@ -67,7 +76,7 @@ public class Main {
         String discountCode = getDiscountCode();
         int payment = getPayment();
         System.out.println("=".repeat(20));
-        double[][] table = {  // nice and decent way to repesent the table
+        double[][] table = { // nice and decent way to repesent the table
             {1, 3, 6, 12},
             {6, 5, 4, 3},
             {8, 7, 6, 5},
@@ -92,13 +101,13 @@ public class Main {
             }
         } catch (IOException e) {
             System.out.println("An error occurred. ");
-        }   
+        }
         // gathering the line to be appended and printed
         String line = currentDate + "\t" + (packageWatned == 1 ? "B" : packageWatned == 2 ? "S" : "G")
-                        + "\t" + (int) table[0][duration - 1] + "\t" + discountCode + "\t" + (payment == 1 ? "O" : "M") + "\t"
-                        + costInPences + "\t" + name + "\n";
+                + "\t" + (int) table[0][duration - 1] + "\t" + discountCode + "\t" + (payment == 1 ? "O" : "M") + "\t"
+                + costInPences + "\t" + name + "\n";
         try {
-              
+
             try ( FileWriter myWriter = new FileWriter("subscription.txt", true)) {
                 myWriter.append(line);
                 printSummary(line);// if no errors and it's appended print it;
@@ -127,8 +136,8 @@ public class Main {
                 System.out.println("Please enter both first and last names");
                 flag = true;
             }
-            if(name.length() > 24){
-            flag = true;
+            if (name.length() > 24) {
+                flag = true;
                 System.out.println("Name can't be over 25 letter");
             }
             //            check for the name here!
@@ -194,8 +203,6 @@ public class Main {
     }
 
     public static void printSummary(String line) {
-
-        
         String[] orig = line.split("\n");
         String[] array = orig[0].split("\t");
         String name = " Customer: " + array[6];
@@ -205,14 +212,15 @@ public class Main {
         String packDur = "  Pacage: " + packageString + " ".repeat(14) + "Duration: " + durationString;
         String term = "    Terms: " + (array[4].equalsIgnoreCase("o") ? "One-off" : "Monthly");
         String price = array[5];
-        String last2Dig = price.substring(price.length()-2);
-        String firstDigits = price.substring(0,price.length()-2);
+        String last2Dig = price.substring(price.length() - 2);
+        String firstDigits = price.substring(0, price.length() - 2);
         price = firstDigits + "." + last2Dig;
-        
+
         String subsc = (array[4].equalsIgnoreCase("o") ? "One-off" : "Monthly") + "  Subscription: " + "£" + price;
 
         // chars used 
         int middelSpace = 47;
+        int num = middelSpace - (((middelSpace - subsc.length()) / 2) + subsc.length());
         String upAndDown = "+" + "=".repeat(middelSpace) + "+";
         String leftAndRight = "|";
         String emptySpace = " ";
@@ -224,7 +232,7 @@ public class Main {
         System.out.println(leftAndRight + packDur + emptySpace.repeat(middelSpace - packDur.length()) + leftAndRight); // 6th line for package and duration
         System.out.println(leftAndRight + term + emptySpace.repeat(middelSpace - term.length()) + leftAndRight); // 7th line terms
         System.out.println(leftAndRight + emptySpace.repeat(middelSpace) + leftAndRight); // empty line
-        System.out.println(leftAndRight + emptySpace.repeat((middelSpace - subsc.length() ) / 2) + subsc + " ".repeat((middelSpace - subsc.length()) / 2) + (middelSpace - subsc.length() % 2 == 1 ? " " : "" ) + leftAndRight); // logic here for one letter space if the number of the spaces is odd 
+        System.out.println(leftAndRight + emptySpace.repeat((middelSpace - subsc.length()) / 2) + subsc + " ".repeat(num) + leftAndRight); // logic here for one letter space if the number of the spaces is odd 
         System.out.println(leftAndRight + emptySpace.repeat(middelSpace) + leftAndRight); //empty line
         System.out.println(upAndDown);
     }
@@ -266,7 +274,7 @@ public class Main {
         return choice;
     }
 
-    public static boolean isNumeric(String strNum)  {
+    public static boolean isNumeric(String strNum) {
         if (strNum == null) {
             return false;
         }
@@ -277,4 +285,125 @@ public class Main {
         }
         return true;
     } // checks for numbers
+
+    public static void displaySummary() {
+        System.out.println("display summary");
+        int chosenFile = askUser("Which file would you see summary for?", "1- Current \n2- Sample", 2, false);
+        String fileToLookIn = chosenFile == 1 ? "current.txt" : "sample.txt";
+        int totalSubInFile = 0;
+        boolean isEmpty = true;
+        int totalSubscription = 0;
+        int goldAppear = 0;
+        int totalGold = 0;
+        int totalSelvier = 0;
+        int selvierAppear = 0;
+        int totalBronze = 0;
+        int bronzeAppear = 0;
+
+        HashMap<String, Integer> subPerMnonth = new HashMap<String, Integer>();
+        String[] arrayOfMonths = {"Jan", "Feb", "Mar","Apr",  "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+        int num = 0;
+        try ( BufferedReader reader = new BufferedReader(new FileReader(fileToLookIn))) {
+            String line = reader.readLine();
+
+            while (line != null) {
+                isEmpty = false;
+                System.out.println(line);
+                String[] array = line.split("\t");
+                System.out.println(array.length + " <<< array length ");
+                System.out.println(array[5] + " <<<<<<<<< number 5 ,");
+                int payment = Integer.parseInt(array[5]);
+                totalSubscription += payment;
+
+                totalSubInFile++;
+                switch (array[1]) {
+                    case "B":
+                        totalBronze += payment;
+                        bronzeAppear++;
+                        System.out.println("it's Bronze");
+                        break;
+                    case "G":
+                        totalGold += payment;
+                        goldAppear++;
+                        System.out.println("it's Gold");
+                        break;
+                    case "S":
+                        totalSelvier += payment;
+                        selvierAppear++;
+                        System.out.println("it's Selvier");
+                        break;
+                    
+                }
+                boolean doseItHaveKe = false;
+                int appear = 1;
+
+                String month = array[0].split("-")[1]; // Get the month
+                if (!subPerMnonth.containsKey(month)) {
+                    System.out.println("not here");
+                    subPerMnonth.put(month, appear);
+                } else {
+                    System.out.println("Is already here");
+                    int currentValue = subPerMnonth.get(month);
+                    currentValue++;
+                    subPerMnonth.put(month, currentValue);
+                }
+                //                subPerMnonth.put(array[], line);
+
+                line = reader.readLine();
+            }
+            reader.close();
+            System.out.println(totalSubInFile);
+            if (isEmpty) {
+                System.out.println("The chosen file is empty");
+            }
+        } catch (IOException ex) {
+            System.out.println("Unable to open file for writing...");
+        }
+        double totalAppearnce = (double)bronzeAppear  + (double)goldAppear + (double)selvierAppear ; 
+        System.out.println(totalBronze); 
+        System.out.println(bronzeAppear + "appear bronze");
+        System.out.println(totalGold);
+        System.out.println(+ goldAppear + "appear gold");
+        System.out.println(totalSelvier + "silver appear");
+        System.out.println(selvierAppear + "selvi");
+        
+        
+        System.out.println(num);
+        System.out.println();
+        System.out.println("-".repeat(47));
+        System.out.println("| Total number of subscrtiptoins: " + totalSubInFile);
+        System.out.println("| Average monthly subscription: " + totalSubInFile / (double)12);
+        System.out.println("");
+        System.out.println("Precentage of subscriptions: \nBronze: " +(bronzeAppear == 0 ? 0: (double)((double) bronzeAppear * (double)100.0 / (double)totalAppearnce)) + "%");
+        System.out.println("Silver: " +(selvierAppear == 0 ? 0: (double)((double)bronzeAppear * (double)100.0 / (double)totalAppearnce))  + "%");
+        System.out.println("Gold: " + (goldAppear == 0 ? 0: (double)((double)bronzeAppear * (double)100.0 / (double)totalAppearnce)));
+        System.out.println("\n");
+
+        for (String i : arrayOfMonths) {
+            System.out.print(i + "  ");
+        }
+        System.out.println("");
+        for (String i : arrayOfMonths) {
+            System.out.print(subPerMnonth.get(i ) != null? subPerMnonth.get(i ): "0");
+            System.out.print(subPerMnonth.get(i ) != null ? " ".repeat(5 - subPerMnonth.get(i ).toString().length()) : "    ");
+        }
+        
+        System.out.println("-".repeat(47));
+
+
+
+        int counter = 0;
+        for (String i : subPerMnonth.keySet()) {
+
+            counter += subPerMnonth.get(i);
+//            System.out.println("key: " + i + " value: " + subPerMnonth.get(i));
+        }
+        System.out.println(counter);
+        System.out.println("=".repeat(50));
+
+
+
+    }
+
 }
