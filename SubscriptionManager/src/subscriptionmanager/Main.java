@@ -6,17 +6,14 @@
 package subscriptionmanager;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.System.Logger;
+import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -24,34 +21,36 @@ import java.util.Map;
  */
 public class Main {
 
+    private static final DecimalFormat df = new DecimalFormat("0.0");
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        displaySummary();
+        int selected = menu();
+        switch (selected) {
+            case 0:
+                System.out.println("selected is 0 ");
+                System.exit(0);
+                break;
+            case 1:
+                System.out.println("selected is 1 ");
+                newSubscription();
+                break;
+            case 2:
+                System.out.println("selected is 2 ");
+                displaySummary();
+                break;
+            case 3:
+                System.out.println("selected is 3 ");
+                break;
+            case 4:
+                System.out.println("selected is 4 ");
+                break;
+                    
+                
 
-//        int selected = menu();
-//        switch (selected) {
-//            case 0:
-//                System.out.println("selected is 0 ");
-//                System.exit(0);
-//                break;
-//            case 1:
-//                System.out.println("selected is 1 ");
-//                newSubscription();
-//                break;
-//            case 2:
-//                System.out.println("selected is 2 ");
-//                displaySummary();
-//                break;
-//            case 3:
-//                System.out.println("selected is 3 ");
-//                break;
-//            case 4:
-//                System.out.println("selected is 4 ");
-//                break;
-//
-//        }
+        }
         System.out.println("Thanks for using my System, hava a good day and see you soon :)");
     }
 
@@ -66,6 +65,7 @@ public class Main {
         return choice;
     }
 
+    // start of new subscription functionlity 
     public static void newSubscription() {
         System.out.println("New sub");
         String currentDate = DateHelper.getDate();
@@ -285,125 +285,101 @@ public class Main {
         }
         return true;
     } // checks for numbers
+//start of new subscription
 
+//    Start of the Display summary functionality 
     public static void displaySummary() {
         System.out.println("display summary");
+
         int chosenFile = askUser("Which file would you see summary for?", "1- Current \n2- Sample", 2, false);
         String fileToLookIn = chosenFile == 1 ? "current.txt" : "sample.txt";
+
         int totalSubInFile = 0;
         boolean isEmpty = true;
-        int totalSubscription = 0;
         int goldAppear = 0;
-        int totalGold = 0;
-        int totalSelvier = 0;
         int selvierAppear = 0;
-        int totalBronze = 0;
         int bronzeAppear = 0;
 
-        HashMap<String, Integer> subPerMnonth = new HashMap<String, Integer>();
-        String[] arrayOfMonths = {"Jan", "Feb", "Mar","Apr",  "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        HashMap<String, Integer> subPerMnonth = new HashMap<>();
 
-        int num = 0;
         try ( BufferedReader reader = new BufferedReader(new FileReader(fileToLookIn))) {
             String line = reader.readLine();
 
             while (line != null) {
                 isEmpty = false;
-                System.out.println(line);
                 String[] array = line.split("\t");
-                System.out.println(array.length + " <<< array length ");
-                System.out.println(array[5] + " <<<<<<<<< number 5 ,");
-                int payment = Integer.parseInt(array[5]);
-                totalSubscription += payment;
-
                 totalSubInFile++;
                 switch (array[1]) {
                     case "B":
-                        totalBronze += payment;
                         bronzeAppear++;
-                        System.out.println("it's Bronze");
                         break;
                     case "G":
-                        totalGold += payment;
                         goldAppear++;
-                        System.out.println("it's Gold");
                         break;
                     case "S":
-                        totalSelvier += payment;
                         selvierAppear++;
-                        System.out.println("it's Selvier");
                         break;
-                    
                 }
-                boolean doseItHaveKe = false;
                 int appear = 1;
-
                 String month = array[0].split("-")[1]; // Get the month
                 if (!subPerMnonth.containsKey(month)) {
-                    System.out.println("not here");
                     subPerMnonth.put(month, appear);
                 } else {
-                    System.out.println("Is already here");
                     int currentValue = subPerMnonth.get(month);
                     currentValue++;
                     subPerMnonth.put(month, currentValue);
                 }
-                //                subPerMnonth.put(array[], line);
-
                 line = reader.readLine();
             }
             reader.close();
-            System.out.println(totalSubInFile);
             if (isEmpty) {
                 System.out.println("The chosen file is empty");
             }
         } catch (IOException ex) {
             System.out.println("Unable to open file for writing...");
         }
-        double totalAppearnce = (double)bronzeAppear  + (double)goldAppear + (double)selvierAppear ; 
-        System.out.println(totalBronze); 
-        System.out.println(bronzeAppear + "appear bronze");
-        System.out.println(totalGold);
-        System.out.println(+ goldAppear + "appear gold");
-        System.out.println(totalSelvier + "silver appear");
-        System.out.println(selvierAppear + "selvi");
-        
-        
-        System.out.println(num);
-        System.out.println();
-        System.out.println("-".repeat(47));
-        System.out.println("| Total number of subscrtiptoins: " + totalSubInFile);
-        System.out.println("| Average monthly subscription: " + totalSubInFile / (double)12);
-        System.out.println("");
-        System.out.println("Precentage of subscriptions: \nBronze: " +(bronzeAppear == 0 ? 0: (double)((double) bronzeAppear * (double)100.0 / (double)totalAppearnce)) + "%");
-        System.out.println("Silver: " +(selvierAppear == 0 ? 0: (double)((double)bronzeAppear * (double)100.0 / (double)totalAppearnce))  + "%");
-        System.out.println("Gold: " + (goldAppear == 0 ? 0: (double)((double)bronzeAppear * (double)100.0 / (double)totalAppearnce)));
-        System.out.println("\n");
 
-        for (String i : arrayOfMonths) {
-            System.out.print(i + "  ");
-        }
-        System.out.println("");
-        for (String i : arrayOfMonths) {
-            System.out.print(subPerMnonth.get(i ) != null? subPerMnonth.get(i ): "0");
-            System.out.print(subPerMnonth.get(i ) != null ? " ".repeat(5 - subPerMnonth.get(i ).toString().length()) : "    ");
-        }
-        
-        System.out.println("-".repeat(47));
-
-
-
-        int counter = 0;
-        for (String i : subPerMnonth.keySet()) {
-
-            counter += subPerMnonth.get(i);
-//            System.out.println("key: " + i + " value: " + subPerMnonth.get(i));
-        }
-        System.out.println(counter);
-        System.out.println("=".repeat(50));
-
-
+        printInfoSummary(totalSubInFile, goldAppear, bronzeAppear, selvierAppear, subPerMnonth);
 
     }
 
+    public static void printInfoSummary(int totalSubInFile, int goldAppear, int bronzeAppear, int selvierAppear, HashMap subPerMnonth) {
+        String[] arrayOfMonths = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        double totalAppearnce = bronzeAppear + goldAppear + selvierAppear;
+        String edges = "|";
+
+        String space = " ";
+
+        System.out.println("-".repeat(71));
+        String toBePrinted = edges + " Total number of subscrtiptoins: " + totalSubInFile;
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        toBePrinted = edges + " Average monthly subscription: " + Math.round(totalSubInFile / (double) 12 * 100.0) / 100.0;
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        System.out.println(edges + space.repeat(70 - 1) + edges);
+        toBePrinted = edges + " Precentage of subscriptions:";
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        toBePrinted = edges + " Bronze: " + (bronzeAppear == 0 ? 0 : df.format(((bronzeAppear * 100.0) / totalAppearnce))) + "%";
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        toBePrinted = edges + " Silver: " + (selvierAppear == 0 ? 0 : df.format(((selvierAppear * 100.0) / totalAppearnce))) + "%";
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        toBePrinted = edges + " Gold: " + (goldAppear == 0 ? 0 : df.format(((goldAppear * 100.0) / totalAppearnce))) + "%";
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length()) + edges);
+        System.out.println(edges + space.repeat(70 - 1) + edges);
+        System.out.print(edges + space);
+        toBePrinted = "";
+        for (String i : arrayOfMonths) {
+            toBePrinted += i + "  "; // loop throught the months array and print every month in it and 2 spaces after it
+        }
+        System.out.println(toBePrinted + space.repeat(70 - toBePrinted.length() - 2) + edges);
+        toBePrinted = " ";
+        for (String i : arrayOfMonths) {
+            // Enter every month as a key for the hash map so I get the value for each one same order
+            toBePrinted += subPerMnonth.get(i) != null ? subPerMnonth.get(i) : "0"; // if the file has no month return 0 istaed of null
+            toBePrinted += subPerMnonth.get(i) != null ? " ".repeat(5 - subPerMnonth.get(i).toString().length()) : space.repeat(4); //  to adjust the spaces after the number so if 999 or 1 will give the same spaces after it
+        }
+        System.out.println(edges + toBePrinted + space.repeat(70 - toBePrinted.length() - 1) + edges);
+        System.out.println("-".repeat(71)); 
+
+
+    }
 }
