@@ -1,23 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package subscriptionmanager;
 
 import java.io.BufferedReader;
 import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
  *
- * @author YOUR NAME
+ * @author Abdulrahman Al Hariri / c2644873
  */
 public class Main {
 
@@ -27,29 +22,29 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int selected = menu();
-        switch (selected) {
-            case 0:
-                System.out.println("selected is 0 ");
-                System.exit(0);
-                break;
-            case 1:
-                System.out.println("selected is 1 ");
-                newSubscription();
-                break;
-            case 2:
-                System.out.println("selected is 2 ");
-                displaySummary();
-                break;
-            case 3:
-                System.out.println("selected is 3 ");
-                break;
-            case 4:
-                System.out.println("selected is 4 ");
-                break;
-                    
-                
 
+        while (true) {
+
+            int selected = menu();
+            if (selected == 0) {
+                break;
+            }
+            switch (selected) {
+                case 1:
+                    newSubscription();
+                    break;
+                case 2:
+                    displaySummary();
+                    break;
+                case 3:
+                    displayMonthSummary();
+                    break;
+                case 4:
+                    searchFor();
+                    break;
+
+            }
+            
         }
         System.out.println("Thanks for using my System, hava a good day and see you soon :)");
     }
@@ -68,53 +63,18 @@ public class Main {
     // start of new subscription functionlity 
     public static void newSubscription() {
         System.out.println("New sub");
-        String currentDate = DateHelper.getDate();
 
         String name = getName();
         int packageWatned = getPackage();
         int duration = getDoration();
         String discountCode = getDiscountCode();
         int payment = getPayment();
-        System.out.println("=".repeat(20));
-        double[][] table = { // nice and decent way to repesent the table
-            {1, 3, 6, 12},
-            {6, 5, 4, 3},
-            {8, 7, 6, 5},
-            {9.99, 8.99, 7.99, 6.99}
-        };
-        double cost = table[0][duration - 1] * table[packageWatned][duration - 1];
+        System.out.println();
 
-        if (!discountCode.equals("-")) {
-            double discountValue = Integer.parseInt(discountCode.substring(discountCode.length() - 1, discountCode.length())) / 100.0; // get the discount from the code
-            cost -= cost * discountValue; // if a discount code found will be applied
-        }
-        if (payment == 1) {
-            cost -= cost * 0.05;  // if a one-off payment a 5% discount applied 
-        }
-        String costInPences = Double.toString(cost * 100).substring(0, Double.toString(cost * 100).lastIndexOf(".")); // convert the cost to pences by multibly 100 and get rid of the . and the 0 after it; ready to store in the file
+        Subscription person = new Subscription(name, packageWatned, duration, discountCode, payment);
+        person.saveToFile();
+        printSummary(person.getLine());
 
-        try {
-            File myObj = new File(System.getProperty("user.dir") + "/" + "subscription.txt"); // just to make sure it's created in the current directory
-            System.out.println(myObj.exists());
-            if (!myObj.exists()) { // check if the file exists, if not will be created
-                myObj.createNewFile();
-            }
-        } catch (IOException e) {
-            System.out.println("An error occurred. ");
-        }
-        // gathering the line to be appended and printed
-        String line = currentDate + "\t" + (packageWatned == 1 ? "B" : packageWatned == 2 ? "S" : "G")
-                + "\t" + (int) table[0][duration - 1] + "\t" + discountCode + "\t" + (payment == 1 ? "O" : "M") + "\t"
-                + costInPences + "\t" + name + "\n";
-        try {
-
-            try ( FileWriter myWriter = new FileWriter("subscription.txt", true)) {
-                myWriter.append(line);
-                printSummary(line);// if no errors and it's appended print it;
-            }
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-        }
     }
 
     public static String getName() {
@@ -166,9 +126,6 @@ public class Main {
         if (choice == 2) {
             return code;
         }
-        String currentDate = DateHelper.getDate();
-        String currentYear = currentDate.substring(currentDate.length() - 2, currentDate.length()); // getting the current year which is the last two digits
-
         while (true) {
             code = askUser("your discount code");
             if (code.equalsIgnoreCase("x")) {
@@ -176,24 +133,12 @@ public class Main {
                 break;
             }
 
-            if (code.trim().length() == 6) { // check for the length should be 6
-
-                if (code.substring(2, 4).equalsIgnoreCase(currentYear)) { // check for the 2nd, 3rd numbers sould match the current year.
-                    String[] codeArray = code.split("");
-                    if (!isNumeric(codeArray[0]) && !isNumeric(codeArray[1]) && !isNumeric(codeArray[4])) { // check that 1st, 2nd, and 5th are letters not numbers
-
-                        if (codeArray[4].equalsIgnoreCase("L") || codeArray[4].equalsIgnoreCase("E")) { //check for the 5th letter is E or L 
-
-                            if (isNumeric(codeArray[5]) && !codeArray[5].equals("0")) { // check for the last letter which should be number && not 0 ;
-                                System.out.println("*".repeat(20) + " Code Accepted " + "*".repeat(20));
-                                return code;
-                            }
-                        }
-                    }
-                }
+            if (validateCode(code)) {
+                break;
+            } else {
+                System.out.println("");
+                System.out.println("if you wish to cancel entering the code, Enter: x");
             }
-            System.out.println("Code Rejected, check your code and try again");
-            System.out.println("if you wish to cancel entering the code, Enter: x");
         }
         return code;
     }
@@ -206,10 +151,10 @@ public class Main {
         String[] orig = line.split("\n");
         String[] array = orig[0].split("\t");
         String name = " Customer: " + array[6];
-        String date = "   Date: " + array[0] + "     " + "Discount Code: " + array[3];
-        String packageString = array[1].equalsIgnoreCase("s") ? "Selver" : array[1].equalsIgnoreCase("B") ? "Bronze" : "Gold";
-        String durationString = array[4].equalsIgnoreCase("1") ? "One" : array[4].equalsIgnoreCase("3") ? "Three" : array[4].equalsIgnoreCase("6") ? "Six" : "Twelve";
-        String packDur = "  Pacage: " + packageString + " ".repeat(14) + "Duration: " + durationString;
+        String date = "     Date: " + array[0] + "     " + "Discount Code: " + array[3];
+        String packageString = array[1].equalsIgnoreCase("s") ? "Silver" : array[1].equalsIgnoreCase("B") ? "Bronze" : "Gold";
+        String durationString = array[2].equalsIgnoreCase("1") ? "One" : array[2].equalsIgnoreCase("3") ? "Three" : array[2].equalsIgnoreCase("6") ? "Six" : "Twelve";
+        String packDur = "  Package: " + packageString + " ".repeat(14) + "Duration: " + durationString;
         String term = "    Terms: " + (array[4].equalsIgnoreCase("o") ? "One-off" : "Monthly");
         String price = array[5];
         String last2Dig = price.substring(price.length() - 2);
@@ -219,7 +164,7 @@ public class Main {
         String subsc = (array[4].equalsIgnoreCase("o") ? "One-off" : "Monthly") + "  Subscription: " + "£" + price;
 
         // chars used 
-        int middelSpace = 47;
+        int middelSpace = 49;
         int num = middelSpace - (((middelSpace - subsc.length()) / 2) + subsc.length());
         String upAndDown = "+" + "=".repeat(middelSpace) + "+";
         String leftAndRight = "|";
@@ -279,14 +224,15 @@ public class Main {
             return false;
         }
         try {
+            double d = Double.parseDouble(strNum);
         } catch (NumberFormatException nfe) {
             return false;
         }
         return true;
     } // checks for numbers
-//start of new subscription
+    // End of new subscription functionlity 
 
-//    Start of the Display summary functionality 
+    // Start of  Display month summary  
     public static void displaySummary() {
         System.out.println("display summary");
 
@@ -377,8 +323,212 @@ public class Main {
             toBePrinted += subPerMnonth.get(i) != null ? " ".repeat(5 - subPerMnonth.get(i).toString().length()) : space.repeat(4); //  to adjust the spaces after the number so if 999 or 1 will give the same spaces after it
         }
         System.out.println(edges + toBePrinted + space.repeat(70 - toBePrinted.length() - 1) + edges);
-        System.out.println("-".repeat(71)); 
-
+        System.out.println("-".repeat(71));
 
     }
+    // End of new subscription functionlity 
+
+    //    Start of  Display month summary  
+    public static void displayMonthSummary() {
+        System.out.println(" display month summary");
+
+        int chosenFile = askUser("Which file would you see summary for?", "1- Current \n2- Sample", 2, false);
+        String fileToLookIn = chosenFile == 1 ? "current.txt" : "sample.txt"; // get the file the user would like to see a summary for
+        String chosenMonth = getMonth();  // get the month the user would like to see a summary for 
+
+        int totalSubInMonth = 0;
+        boolean isEmpty = true;
+        int goldAppear = 0;
+        int selvierAppear = 0;
+        int bronzeAppear = 0;
+        double fee = 0;
+
+        try ( BufferedReader reader = new BufferedReader(new FileReader(fileToLookIn))) {
+            String line = reader.readLine();
+
+            while (line != null) {
+                isEmpty = false;
+                String[] array = line.split("\t");
+                String month = array[0].split("-")[1]; // Get the month
+
+                if (month.equalsIgnoreCase(chosenMonth)) {
+                    totalSubInMonth++;
+                    String fee1 = array[5].substring(0, (array[5].length() - 2));
+                    String fee2 = "." + array[5].substring((array[5].length() - 2));
+                    String feeString = fee1 + fee2;
+                    fee += Float.parseFloat(feeString);
+                    switch (array[1]) {
+                        case "B":
+                            bronzeAppear++;
+                            break;
+                        case "G":
+                            goldAppear++;
+                            break;
+                        case "S":
+                            selvierAppear++;
+                            break;
+                    }
+                }
+
+                line = reader.readLine();
+            }
+            reader.close();
+            if (isEmpty) {
+                System.out.println("The chosen file is empty");
+            }
+        } catch (IOException ex) {
+            System.out.println("Unable to open file for writing...");
+        }
+
+        printMonthSummary(bronzeAppear, selvierAppear, goldAppear, totalSubInMonth, fee, chosenMonth);
+    }
+
+    public static String getMonth() {
+
+        String[] arrayOfMonths = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        HashMap<Integer, String> hashOfMonths = new HashMap<>(); // Initialising the hashmap 
+        for (int i = 0; i < arrayOfMonths.length; i++) { //filling the hash map according with the array of months and add 1 to each so jan will be the value of the key 1 and so on
+            hashOfMonths.put(i + 1, arrayOfMonths[i]);
+        }
+
+        System.out.println("You can enter a month nubmber like 1, 2, 3 or the first three letters of the month like Jan, Feb, dec... ignored cases");
+        boolean isMonthFound = false;
+        String month = "";
+        while (!isMonthFound) {
+            String chosenMonth = askUser("the month you would like to see a summary for:");
+
+            if (isNumeric(chosenMonth)) { // check if it's a number 
+                if (Float.parseFloat(chosenMonth) > 0 && Float.parseFloat(chosenMonth) < 13) { // check if it's a correct month number
+//                    monthsNumber = (int) Float.parseFloat(chosenMonth); // so even if the user enter 2.3 will be taken as 2
+                    for (int i : hashOfMonths.keySet()) {
+                        if (i == (int) Float.parseFloat(chosenMonth)) {
+                            month = hashOfMonths.get((i));
+                            isMonthFound = true;
+                            break;
+                        }
+                    }
+                    break;
+                } else {
+                    System.out.println("Well, it's a number but it's an invalid month's number");
+                }
+
+            } else {
+                for (int i : hashOfMonths.keySet()) {
+                    if (hashOfMonths.get(i).equalsIgnoreCase(chosenMonth)) { // compare if the string is a valid month 
+                        month = hashOfMonths.get((i));
+                        isMonthFound = true;
+                        break;
+                    }
+                }
+
+            }
+            System.out.println("Ooops, invalid month :(");
+
+        }
+        return month;
+
+    }
+
+    public static void printMonthSummary(int bronze, int silver, int gold, int total, double fee, String month) {
+        System.out.println("Average sus fee : " + df.format(fee / total));
+        System.out.println("bronze : " + df.format(bronze / (float) total * 100.0));
+        System.out.println("Silver : " + df.format(silver / (float) total * 100.0));
+        System.out.println("Gold: " + df.format(gold / (float) total * 100.0));
+        System.out.println(total);
+        String line1 = " Total number of subscriptions for " + month + ": " + total;
+        String line2 = " Average subscription fee: £" + df.format(fee / total);
+        String line3 = " Percentage of subscriptions:";
+        String edge = "|";
+        String space = " ";
+        System.out.println("-".repeat(72));
+        System.out.println(edge + line1 + space.repeat(70 - line1.length()) + edge);
+        System.out.println(edge + line2 + space.repeat(70 - line2.length()) + edge);
+        System.out.println(edge + space.repeat(70) + edge);
+        System.out.println(edge + line3 + space.repeat(70 - line3.length()) + edge);
+        if (bronze > 1) {
+            String line4 = " bronze : " + df.format(bronze / (float) total * 100.0);
+            System.out.println(edge + line4 + space.repeat(70 - line4.length()) + edge);
+        }
+        if (silver > 1) {
+            String line5 = " bronze : " + df.format(silver / (float) total * 100.0);
+            System.out.println(edge + line5 + space.repeat(70 - line5.length()) + edge);
+        }
+        if (gold > 1) {
+            String line6 = " bronze : " + df.format(gold / (float) total * 100.0);
+            System.out.println(edge + line6 + space.repeat(70 - line6.length()) + edge);
+        }
+        System.out.println("-".repeat(72));
+    }
+    //    End of  Display month summary  
+
+    //    Start of search for a name 
+    public static void searchFor() {
+        System.out.println("Search for a user");
+        int chosenFile = askUser("Which file would you see summary for?", "1- Current \n2- Sample", 2, false);
+        String fileToLookIn = chosenFile == 1 ? "current.txt" : "sample.txt"; // get the file the user would like to see a summary for
+
+        String name = askUser("name you want to search for");
+
+        boolean isEmpty = true;
+
+        try ( BufferedReader reader = new BufferedReader(new FileReader(fileToLookIn))) {
+            String line = reader.readLine();
+
+            while (line != null) {
+                isEmpty = false;
+                String[] array = line.split("\t");
+                if (array[6].contains(name)) {
+                    printSummary(line);
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+            if (isEmpty) {
+                System.out.println("The chosen file is empty");
+            }
+        } catch (IOException ex) {
+            System.out.println("Unable to open file for writing...");
+        }
+
+    }
+    //    End of search for a name 
+
+    public static boolean validateCode(String code) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy"); // a format to get the month as a number so I can comapre the month easily
+        Date date = new Date();
+
+        String[] arrayDate = formatter.format(date).split("/");
+
+        Integer currentMonth = Integer.valueOf(arrayDate[1]); // getting the current month in an integer format so I can use it to validate the Discound code
+        String currentYear = arrayDate[2].substring(arrayDate[2].length() - 2, arrayDate[2].length()); // getting the current year which is the last two digits
+
+        if (code.trim().length() == 6) { // check for the length should be 6
+            if (code.substring(2, 4).equalsIgnoreCase(currentYear)) { // check for the 2nd, 3rd numbers sould match the current year.
+                String[] codeArray = code.split("");
+
+                if (!isNumeric(codeArray[0]) && !isNumeric(codeArray[1]) && !isNumeric(codeArray[4])) { // check that 1st, 2nd, and 5th are letters not numbers
+                
+                    if ((codeArray[4].equalsIgnoreCase("L") && currentMonth > 6) || (codeArray[4].equalsIgnoreCase("E") && currentMonth <= 6)) { //check for the 5th letter is E or L 
+
+                        if (isNumeric(codeArray[5]) && !codeArray[5].equals("0")) { // check for the last letter which should be number && not 0 ;
+                            System.out.println("*".repeat(15) + "    (" + code + " Code Accepted)    " + "*".repeat(15));
+                            return true;
+                        } else {
+                            System.out.println("The last char should be number!");
+                        }
+                    } else {
+                        System.out.println("The fifth letter should be 'E' or 'L' And compatabel with the current month!");
+                    }
+                } else {
+                    System.out.println("Check the first, second or fifth, should be letters!");
+                }
+            } else {
+                System.out.println("The year dose not match");
+            }
+        } else {
+            System.out.println("Check your Code length"); // it's not valid length
+        }
+        return false;
+    }
+
 }
